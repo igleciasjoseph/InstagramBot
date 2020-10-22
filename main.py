@@ -3,78 +3,51 @@ import asyncio
 import time
 import smtplib
 import os
-from names import names
-from email.message import EmailMessage
+from handles import handles
 from dotenv import load_dotenv
-
-failures = []
 
 load_dotenv()
 
-EMAIL_ENV = os.getenv('EMAIL')
-PASSWORD_ENV = os.getenv('PASSWORD')
+EMAIL_ENV = os.getenv("EMAIL")
+PASSWORD_ENV = os.getenv("PASSWORD")
+INSTAGRAM_URL = "https://instagram.com/"
+
+available_handles = []
 
 
 async def fetch(session, url, name):
-
-    async with session.get(url) as response:
-
-        if response.status != 200:
-            failures.append(name)
+    response = await session.get(url)
+    if response.status != 200:
+        available_handles.append(name)
 
 
-async def fetch_all(session, usernames):
-    url = 'https://instagram.com/'
-
-    tasks = []
-
-    for name in usernames:
-
-        # Instagram has a minimum character limit of 4 so this will exclude names shorter than
-        if (len(name) < 4):
-            continue
-
-        task = asyncio.create_task(fetch(session, f'{url}{name}/', name))
-
-        tasks.append(task)
-
-    results = await asyncio.gather(*tasks)
-
-
-def send_mail():
-    server = smtplib.SMTP('smtp.gmail.com', 587)
+def send_email():
+    server = smtplib.SMTP("smtp.gmail.com", 587)
     server.ehlo()
     server.starttls()
     server.ehlo()
-
     server.login(EMAIL_ENV, PASSWORD_ENV)
 
-    subject = 'Latest: Instagram Bot'
-    body = f'{failures}'
+    subject = "Latest: Instagram Bot"
+    body = f"{available_handles}"
+    msg = f"Subject: {subject}\n\n{body}"
 
-    msg = f'Subject: {subject}\n\n{body}'
-
-    server.sendmail(
-        EMAIL_ENV,
-        EMAIL_ENV,
-        msg
-    )
-    print('EMAIL HAS BEEN SENT')
+    server.sendmail(EMAIL_ENV, EMAIL_ENV, msg)
+    print("Email sent")
     server.quit()
 
 
 async def main():
-
     async with aiohttp.ClientSession() as session:
-        response = await fetch_all(session, names)
+        tasks = [
+            asyncio.create_task(fetch(session, f"{INSTAGRAM_URL}{handle}/", handle))
+            for handle in handles
+            if len(handle) >= 4
+        ]
+        await asyncio.gather(*tasks)
+        available_handles.sort()
+        send_email()
 
-        failures.sort()
 
-        send_mail()
-
-        print(EMAIL_ENV)
-
-        print(failures)
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     asyncio.run(main())
