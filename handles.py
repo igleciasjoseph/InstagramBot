@@ -1,4 +1,4 @@
-names = [
+handles = [
     "Liam",
     "Noah",
     "William",
@@ -998,5 +998,5 @@ names = [
     "Randall",
     "Benton",
     "Coleman",
-    "Markus"
+    "Markus",
 ]

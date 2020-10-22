@@ -4,10 +4,10 @@ Instagram Bot for Username, or IBU, is a bot that scans Instagram for usernames 
 
 ## Installation
 
-Use the package manager [pip](https://pip.pypa.io/en/stable/) to install modules.
+Use the package manager [poetry](https://python-poetry.org/) to install modules.
 
 ```bash
-pip install -r requirements.txt
+poetry install
 ```
 
 ## Google Apps Configuration
