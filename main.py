@@ -2,6 +2,7 @@ import aiohttp
 import asyncio
 import time
 import smtplib
+import imaplib
 import os
 from names import names
 from email.message import EmailMessage
@@ -70,11 +71,27 @@ async def main():
 
         failures.sort()
 
-        send_mail()
+        # send_mail()
 
-        print(EMAIL_ENV)
+        imap_server = imaplib.IMAP4_SSL(host='imap.gmail.com')
 
-        print(failures)
+        imap_server.login(EMAIL_ENV, PASSWORD_ENV)
+
+        imap_server.select()
+
+        _, message_numbers_raw = imap_server.search(
+            None, 'FROM', '"no-reply@mail.instagram.com"')
+        for message_number in message_numbers_raw[0].split():
+
+            _, msg = imap_server.fetch(message_number, '(RFC822)')
+
+            print(msg[0][1])
+
+            break
+
+        # print(EMAIL_ENV)
+
+        # print(failures)
 
 if __name__ == '__main__':
     asyncio.run(main())
